@@ -1,5 +1,4 @@
 pipeline {
-
   environment {
     dockerimagename = "ianwaswa/nodeapp"
     dockerImage = ""
@@ -9,6 +8,13 @@ pipeline {
 
   stages {
 
+    stage('Setup Safe Directory') {
+      steps {
+        // Mark workspace as safe to avoid "dubious ownership" error
+        sh 'git config --global --add safe.directory /var/jenkins_home/workspace/webstack_project'
+      }
+    }
+
     stage('Checkout Source') {
       steps {
         git 'https://github.com/Ianwaswa/nodeapp_test.git'
@@ -16,7 +22,7 @@ pipeline {
     }
 
     stage('Build image') {
-      steps{
+      steps {
         script {
           dockerImage = docker.build dockerimagename
         }
@@ -25,11 +31,11 @@ pipeline {
 
     stage('Pushing Image') {
       environment {
-               registryCredential = 'dockerhublogin'
-           }
-      steps{
+        registryCredential = 'dockerhublogin'
+      }
+      steps {
         script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
+          docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
             dockerImage.push("latest")
           }
         }
